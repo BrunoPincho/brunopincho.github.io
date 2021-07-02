@@ -29,7 +29,7 @@ In the previous snippet we are telling socat to set up a tcp listenner on port <
 Lets take a look at my listenner:
 
 {:refdef: style="text-align: center;"}
-![socat listener](/assets/images/socat_listener.png)
+![socat listener]({{ "/assets/images/socat_listener.png"|relative_url}})
 {: refdef}
 <br>
 I’m running my socat listenner inside a docker container.
