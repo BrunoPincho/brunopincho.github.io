@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.6.0">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.7.0">
      
      
     
@@ -19,7 +19,7 @@
 
     
  
-<title>Companion scanner for mockingjay injection - Ghosts in the shell</title>
+<title>.Companion scanner for mockingjay injection - Ghosts in the shell</title>
 
 
 <link href="../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
@@ -100,18 +100,26 @@
                 
                 
                 <li property="itemListElement" typeof="ListItem">
-                    <a href="../avEvasion/" class="menu-item " property="item" typeof="WebPage">
-                        <span property="name">Antivirus Evasion Techniques</span>
+                    <a href="../MessageBoxInjection/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">.Shellcode injection using MessageBox</span>
                     </a>
                     <meta property="position" content="1">
                 </li>
                 
                 
                 <li property="itemListElement" typeof="ListItem">
-                    <a href="./" class="menu-item active" property="item" typeof="WebPage">
-                        <span property="name">Companion scanner for mockingjay injection</span>
+                    <a href="../avEvasion/" class="menu-item " property="item" typeof="WebPage">
+                        <span property="name">.Antivirus Evasion Techniques</span>
                     </a>
                     <meta property="position" content="2">
+                </li>
+                
+                
+                <li property="itemListElement" typeof="ListItem">
+                    <a href="./" class="menu-item active" property="item" typeof="WebPage">
+                        <span property="name">.Companion scanner for mockingjay injection</span>
+                    </a>
+                    <meta property="position" content="3">
                 </li>
                 
                     
@@ -122,7 +130,7 @@
     <a href="#" class="menu-item" data-toggle="modal" data-target="#mkdocs_search_modal" property="item" typeof="SearchAction">
         <i aria-hidden="true" class="fa fa-search"></i> <span property="name">Search</span>
     </a>
-    <meta property="position" content="3">
+    <meta property="position" content="4">
 </li>
                     
             </ul>
@@ -167,7 +175,26 @@
         
             <a class="
 
-    terminal-mkdocs-side-nav-item" href="../avEvasion/">Antivirus Evasion Techniques</a>
+    terminal-mkdocs-side-nav-item" href="../MessageBoxInjection/">.Shellcode injection using MessageBox</a>
+        
+    
+    
+    
+  </li>
+        
+          
+
+
+
+<li class="terminal-mkdocs-side-nav-li">
+    
+    
+    
+        
+        
+            <a class="
+
+    terminal-mkdocs-side-nav-item" href="../avEvasion/">.Antivirus Evasion Techniques</a>
         
     
     
@@ -185,7 +212,7 @@
         
         <span class="
 
-    terminal-mkdocs-side-nav-item--active">Companion scanner for mockingjay injection</span>
+    terminal-mkdocs-side-nav-item--active">.Companion scanner for mockingjay injection</span>
     
     
     
@@ -196,14 +223,14 @@
 </nav><hr>
 <nav>
     <ul>
-        <li><a href="#companion-scanner-for-mockingjay-injection">Companion scanner for mockingjay injection</a></li>
+        <li><a href="#companion-scanner-for-mockingjay-injection">.Companion scanner for mockingjay injection</a></li>
         <li><a href="#handlewalk-algorithm">Handlewalk algorithm</a></li>
     </ul>
 </nav>
 </aside>
             <main id="terminal-mkdocs-main-content">
 <section id="mkdocs-terminal-content">
-    <h1 id="companion-scanner-for-mockingjay-injection">Companion scanner for mockingjay injection</h1>
+    <h1 id="companion-scanner-for-mockingjay-injection">.Companion scanner for mockingjay injection</h1>
 <p><img alt="placehold" src="../img/birb.png" /></p>
 <p>The mockingjay process injection technique, despite conceptually simple is nothing to be mocked at. The authors, acknowledging the fact that EDR systems focus more on certain win32 API calls, decided to seek an alternative which was either less dependent on these API calls or reduced their usage in some way.
 During their analysis of the most used injection techniques, two common operations were identified as being easily flagged as malicious: memory space allocation and changing memory protections to Read-Write-Execute (RWX), performed by NtWriteVirtualMemory and NtProtectVirtualMemory. Yup these are some of the usual surveillance targets for our friendly neighbourhood crowdstrikes, err I mean EDRs.</p>

